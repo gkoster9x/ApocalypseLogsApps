@@ -1,0 +1,7 @@
+{
+  "name": "Ký Ức Tận Thế",
+  "description": "Nhật ký sinh tồn cá nhân hỗ trợ bởi AI trong thế giới hậu tận thế. Ghi lại hành trình, phân tích rủi ro và hình ảnh hóa ký ức.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
