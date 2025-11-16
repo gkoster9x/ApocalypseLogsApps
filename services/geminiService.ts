@@ -7,6 +7,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 const ANALYSIS_MODEL = 'gemini-2.5-flash';
 const IMAGE_MODEL = 'imagen-4.0-generate-001';
 const CHAT_MODEL = 'gemini-2.5-flash';
+const CRAFTING_MODEL = 'gemini-2.5-flash';
 
 // Schema for structured output from analysis
 const analysisSchema: Schema = {
@@ -26,6 +27,18 @@ const analysisSchema: Schema = {
     }
   },
   required: ["riskLevel", "summary", "survivalTips", "resourcesDetected"]
+};
+
+// Schema for crafting
+const craftingSchema: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    success: { type: Type.BOOLEAN, description: "Whether the combination of items creates a valid survival tool or item." },
+    itemName: { type: Type.STRING, description: "Name of the created item (if success)." },
+    description: { type: Type.STRING, description: "Visual description of the created item (if success) or why it failed (if fail)." },
+    utility: { type: Type.STRING, description: "How this item helps in survival (if success)." }
+  },
+  required: ["success", "itemName", "description", "utility"]
 };
 
 export const analyzeJournalEntry = async (content: string, location: string) => {
@@ -106,5 +119,35 @@ export const getChatResponse = async (history: {role: string, parts: string}[], 
     } catch (error) {
         console.error("Chat failed", error);
         return "Kết nối bị gián đoạn... Nhiễu tín hiệu...";
+    }
+}
+
+export const attemptCrafting = async (ingredients: string[]) => {
+    try {
+        const prompt = `
+            Bạn là hệ thống chế tạo sinh tồn (Crafting System).
+            Người dùng muốn kết hợp các nguyên liệu sau: ${ingredients.join(', ')}.
+            
+            Nếu các nguyên liệu này có thể kết hợp logic để tạo thành một vật phẩm hữu ích trong bối cảnh hậu tận thế (vũ khí, thuốc, công cụ, bẫy), hãy trả về success=true.
+            Nếu không thể kết hợp, trả về success=false.
+            Trả lời bằng Tiếng Việt.
+        `;
+
+        const response = await ai.models.generateContent({
+            model: CRAFTING_MODEL,
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: craftingSchema,
+                temperature: 0.4
+            }
+        });
+        
+        const text = response.text;
+        if (!text) throw new Error("Crafting failed");
+        return JSON.parse(text);
+    } catch (error) {
+        console.error("Crafting error", error);
+        throw error;
     }
 }

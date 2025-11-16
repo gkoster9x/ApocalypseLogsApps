@@ -1,5 +1,5 @@
 import React from 'react';
-import { Radio, BookOpen, PenTool, Map, Activity } from 'lucide-react';
+import { Radio, BookOpen, PenTool, Map, Activity, Hammer } from 'lucide-react';
 import { AppView } from '../types';
 
 interface LayoutProps {
@@ -37,6 +37,12 @@ export const Layout: React.FC<LayoutProps> = ({ currentView, setView, children }
               onClick={() => setView(AppView.ARCHIVE)} 
               icon={<BookOpen />} 
               label="Lưu Trữ" 
+            />
+            <NavButton 
+              active={currentView === AppView.CRAFTING} 
+              onClick={() => setView(AppView.CRAFTING)} 
+              icon={<Hammer />} 
+              label="Chế Tạo" 
             />
             <NavButton 
               active={currentView === AppView.CHAT} 

@@ -22,11 +22,21 @@ export interface UserStats {
   healthStatus: number; // 0-100
 }
 
+export interface CraftedItem {
+  id: string;
+  name: string;
+  description: string;
+  utility: string;
+  ingredients: string[];
+  timestamp: number;
+}
+
 export enum AppView {
   DASHBOARD = 'DASHBOARD',
   EDITOR = 'EDITOR',
   ARCHIVE = 'ARCHIVE',
-  CHAT = 'CHAT'
+  CHAT = 'CHAT',
+  CRAFTING = 'CRAFTING'
 }
 
 export const MOOD_COLORS = {

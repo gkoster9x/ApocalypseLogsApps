@@ -4,7 +4,8 @@ import { Dashboard } from './components/Dashboard';
 import { JournalEditor } from './components/JournalEditor';
 import { EntryList } from './components/EntryList';
 import { Chat } from './components/Chat';
-import { AppView, JournalEntry, UserStats } from './types';
+import { Crafting } from './components/Crafting';
+import { AppView, JournalEntry, UserStats, CraftedItem } from './types';
 
 // Mock initial data
 const INITIAL_ENTRIES: JournalEntry[] = [];
@@ -20,11 +21,13 @@ const App: React.FC = () => {
   const [view, setView] = useState<AppView>(AppView.DASHBOARD);
   const [entries, setEntries] = useState<JournalEntry[]>(INITIAL_ENTRIES);
   const [stats, setStats] = useState<UserStats>(INITIAL_STATS);
+  const [craftedItems, setCraftedItems] = useState<CraftedItem[]>([]);
 
   // Load from local storage on mount
   useEffect(() => {
     const savedEntries = localStorage.getItem('apocalypse_entries');
     const savedStats = localStorage.getItem('apocalypse_stats');
+    const savedCrafts = localStorage.getItem('apocalypse_crafts');
     
     if (savedEntries) {
       setEntries(JSON.parse(savedEntries));
@@ -32,13 +35,17 @@ const App: React.FC = () => {
     if (savedStats) {
       setStats(JSON.parse(savedStats));
     }
+    if (savedCrafts) {
+      setCraftedItems(JSON.parse(savedCrafts));
+    }
   }, []);
 
   // Save to local storage when changed
   useEffect(() => {
     localStorage.setItem('apocalypse_entries', JSON.stringify(entries));
     localStorage.setItem('apocalypse_stats', JSON.stringify(stats));
-  }, [entries, stats]);
+    localStorage.setItem('apocalypse_crafts', JSON.stringify(craftedItems));
+  }, [entries, stats, craftedItems]);
 
   const handleSaveEntry = (newEntry: JournalEntry) => {
     setEntries(prev => [newEntry, ...prev]);
@@ -52,11 +59,19 @@ const App: React.FC = () => {
     setView(AppView.ARCHIVE);
   };
 
+  const handleCraftSuccess = (item: CraftedItem) => {
+      setCraftedItems(prev => [...prev, item]);
+  };
+
+  // Derive inventory from analysis results (unique items)
+  const inventory = Array.from(new Set(entries.flatMap(e => e.aiAnalysis?.resourcesDetected || [])));
+
   return (
     <Layout currentView={view} setView={setView}>
       {view === AppView.DASHBOARD && <Dashboard entries={entries} stats={stats} />}
       {view === AppView.EDITOR && <JournalEditor onSave={handleSaveEntry} nextId={entries.length + 1} />}
       {view === AppView.ARCHIVE && <EntryList entries={entries} />}
+      {view === AppView.CRAFTING && <Crafting inventory={inventory} onCraftSuccess={handleCraftSuccess} craftedHistory={craftedItems} />}
       {view === AppView.CHAT && <Chat />}
     </Layout>
   );
